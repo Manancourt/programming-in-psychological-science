@@ -1,0 +1,244 @@
+---
+title: "How to use the 'make_art' function"
+output: html_document
+date: "2023-01-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Define the function
+
+```{r}
+make_art <- function(seed      = 42,
+                     n_lines   = 500,
+                     n_steps   = 80,
+                     step_size = 200,
+                     step_slip = 70,
+                     spread    = 2,
+                     prob_dist = "uniform",
+                     generator = "simplex",
+                     palette   = "davos",
+                     animate   = FALSE) {
+  
+  # Load required packages
+  require(tidyverse)
+  require(ambient)
+  require(scico)
+  require(gganimate)
+  require(randomcoloR)
+  
+  # List of parameters
+  art_params <- list(seed      = seed,
+                     n_lines   = n_lines,
+                     n_steps   = n_steps,
+                     step_size = step_size,
+                     step_slip = step_slip,
+                     spread    = spread,
+                     prob_dist = prob_dist,
+                     generator = generator,
+                     palette   = palette)
+  
+  
+  # Canvas setup -----------------------------------------------
+  
+  set.seed(art_params$seed)
+  
+  # Uniform distribution
+  if (prob_dist == "uniform") {
+    # Create tibble with initial coordinates for x and y. The z variable is
+    # used to manipulate `step_slip` later
+    state <- tibble(x = runif(n   = art_params$n_lines, 
+                              min = 0, 
+                              max = art_params$spread),
+                    y = runif(n   = art_params$n_lines, 
+                              min = 0, 
+                              max = art_params$spread),
+                    z = 0)
+    
+    # Add IDs per line and state (so we can track each line and state easily)
+    state <- state %>% 
+      mutate(line_id = 1:art_params$n_lines,
+             step_id = 1)
+    
+    # This object will track the series of states per line
+    art_data <- state
+  }
+  
+  # Normal distribution
+  else if (prob_dist == "normal") {
+    # Create tibble with initial coordinates for x and y. The z variable is
+    # used to manipulate `step_slip` later
+    state <- tibble(x = rnorm(n    = art_params$n_lines, 
+                              mean = 1, 
+                              sd   = art_params$spread),
+                    y = rnorm(n    = art_params$n_lines, 
+                              mean = 1, 
+                              sd   = art_params$spread),
+                    z = 0)
+    
+    # Add IDs per line and state (so we can track each line and state easily)
+    state <- state %>% 
+      mutate(line_id = 1:art_params$n_lines,
+             step_id = 1)
+    
+    # This object will track the series of states per line
+    art_data <- state  
+  }
+  
+  
+  # Generator loop -----------------------------------------------
+  
+  # A while-loop that mutates the state until `n_steps` is reached
+  stop_draw <- FALSE
+  while (stop_draw == FALSE) {
+    
+    # Choosing different noise generating functions
+    # Simplex
+    if (generator == "simplex") {
+      # Generate curl noise and add to coordinates
+      step <- curl_noise(generator = gen_simplex,
+                         x         = state$x,
+                         y         = state$y,
+                         z         = state$z,
+                         seed      = rep(1, 3) * art_params$seed)
+    }
+    
+    # Waves
+    else if (generator == "waves") {
+      # Generate curl noise and add to coordinates
+      step <- curl_noise(generator = gen_waves,
+                         x         = state$x,
+                         y         = state$y,
+                         z         = state$z,
+                         seed      = rep(1, 3) * art_params$seed)
+    }
+    
+    # Perlin
+    else if (generator == "perlin") {
+      # Generate curl noise and add to coordinates
+      step <- curl_noise(generator = gen_perlin,
+                         x         = state$x,
+                         y         = state$y,
+                         z         = state$z,
+                         seed      = rep(1, 3) * art_params$seed)
+    }
+    
+    # Spheres
+    else if (generator == "spheres") {
+      # Generate curl noise and add to coordinates
+      step <- curl_noise(generator = gen_spheres,
+                         x         = state$x,
+                         y         = state$y,
+                         z         = state$z,
+                         seed      = rep(1, 3) * art_params$seed)
+    }
+    
+    # Incrementally increase coordinates by small amount
+    state <- state %>% 
+      mutate(x       = x + (step$x / 10000) * art_params$step_size, 
+             y       = y + (step$y / 10000) * art_params$step_size,
+             z       = z + (step$z / 10000) * art_params$step_slip,
+             step_id = step_id + 1)         
+    
+    # Append new states to `art_data`
+    art_data <- bind_rows(art_data, state)
+    
+    # Halts while-loop once `n_steps` is reached
+    if (last(state$step_id) >= art_params$n_steps) {
+      stop_draw <- TRUE
+    }
+  }
+  
+  
+  # Generate image and present -----------------------------------
+  
+  # Object for animation
+  total_step_id <- 1:length(art_data$x)
+  times <- data.frame(total_step_id)
+  
+  # Set color palette and randomly sample background color
+  user_palette <- art_params$palette
+  all_bgs      <- scico(n = 8, palette = user_palette)
+  our_bg       <- sample(all_bgs, 1)
+  
+  art <- ggplot(data    = art_data,
+                mapping = aes(x     = x, 
+                              y     = y, 
+                              color = step_id,
+                              group = line_id)) +
+    geom_path(linewidth   = 0.6, 
+              alpha       = 0.5,
+              show.legend = FALSE) + 
+    coord_equal() +
+    theme_void() +
+    scale_color_scico(palette = user_palette) +
+    theme(panel.background = element_rect(fill = our_bg))
+  
+  # Output static art
+  if (animate == FALSE) {
+    return(art) #	( ☉ ‿ ⚆ )
+  }
+  
+  # Output animated art
+  else if (animate == TRUE) {
+    anim <- art + transition_reveal(times$total_step_id)
+    return(anim)
+  }
+  
+}
+```
+
+## Examples of Static Art
+
+### Easy (Should Take a Few Seconds)
+
+Here is an example of a (static) picture that should take only a few seconds to generate. You can try messing around with the parameters listed below. The `seed` determines the random seed used to randomly generate lines, `n_lines` determines how many lines are drawn, `n_steps` determines how iterations the code runs for (more iteratrions means longer lines), `step_size` determines how much is added onto a line per iteration, `step_slip` adds randomness and depth to all lines, `spread` determines how spread our the initial points from which lines are drawn will be, `prob_dist` can be used to choose between randomly sampling from 'unifrom' distributions or 'normal' distributions, `generator` can be used to select the noise generating function (determines the overall shape of the lines, choose between: 'simplex', 'waves', 'perlin', or 'spheres'), `palette` determines the color palette (palettes include all those found in the `scico` package), and finally `animate` allows us to choose between a static image or animated image.
+
+```{r, dpi = 200}
+make_art(seed      = 111,
+         n_lines   = 100,
+         n_steps   = 80,
+         step_size = 200,
+         step_slip = 80,
+         spread    = 4,
+         prob_dist = "uniform",
+         generator = "simplex",
+         palette   = "lajolla",
+         animate   = FALSE)
+```
+
+### Medium (Should Take A Minute or So)
+
+```{r, dpi = 200}
+make_art(seed      = 911,
+         n_lines   = 250,
+         n_steps   = 100,
+         step_size = 200,
+         step_slip = 80,
+         spread    = 4,
+         prob_dist = "uniform",
+         generator = "simplex",
+         palette   = "lapaz",
+         animate   = FALSE)
+```
+
+### Hard (Will Take a While)
+
+
+```{r, dpi = 200}
+make_art(seed      = 420,
+         n_lines   = 600,
+         n_steps   = 100,
+         step_size = 200,
+         step_slip = 80,
+         spread    = 4,
+         prob_dist = "uniform",
+         generator = "simplex",
+         palette   = "bamO",
+         animate   = FALSE)
+```
+
+
+
