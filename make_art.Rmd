@@ -224,11 +224,11 @@ make_art(seed      = 911,
          animate   = FALSE)
 ```
 
-### Hard (Will Take a While)
+### Hard (Will Take a Few Minutes)
 
 
 ```{r, dpi = 200}
-make_art(seed      = 420,
+make_art(seed      = 42,
          n_lines   = 600,
          n_steps   = 100,
          step_size = 200,
@@ -236,9 +236,25 @@ make_art(seed      = 420,
          spread    = 4,
          prob_dist = "uniform",
          generator = "simplex",
-         palette   = "bamO",
+         palette   = "vikO",
          animate   = FALSE)
 ```
 
+## Examples of Animated Art
+
+### Easy (Will Take A Minute)
+
+```{r, dpi = 200}
+make_art(seed      = 594,
+         n_lines   = 80,
+         n_steps   = 80,
+         step_size = 200,
+         step_slip = 80,
+         spread    = 1,
+         prob_dist = "uniform",
+         generator = "simplex",
+         palette   = "lapaz",
+         animate   = TRUE)
+```
 
 
