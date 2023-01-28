@@ -194,7 +194,21 @@ make_art <- function(seed      = 42,
 
 ### Easy (Should Take a Few Seconds)
 
-Here is an example of a (static) picture that should take only a few seconds to generate. You can try messing around with the parameters listed below. The `seed` determines the random seed used to randomly generate lines, `n_lines` determines how many lines are drawn, `n_steps` determines how iterations the code runs for (more iteratrions means longer lines), `step_size` determines how much is added onto a line per iteration, `step_slip` adds randomness and depth to all lines, `spread` determines how spread our the initial points from which lines are drawn will be, `prob_dist` can be used to choose between randomly sampling from 'unifrom' distributions or 'normal' distributions, `generator` can be used to select the noise generating function (determines the overall shape of the lines, choose between: 'simplex', 'waves', 'perlin', or 'spheres'), `palette` determines the color palette (palettes include all those found in the `scico` package), and finally `animate` allows us to choose between a static image or animated image.
+Here is an example of a (static) picture that should take only a few seconds
+to generate. You can try messing around with the parameters listed below. 
+The `seed` determines the random seed used to randomly generate lines, 
+`n_lines` determines how many lines are drawn, `n_steps` determines how 
+iterations the code runs for (more iteratrions means longer lines),
+`step_size` determines how much is added onto a line per iteration,
+`step_slip` adds randomness and depth to all lines, `spread` determines 
+how spread our the initial points from which lines are drawn will be,
+`prob_dist` can be used to choose between randomly sampling from 'unifrom'
+distributions or 'normal' distributions, `generator` can be used to select 
+the noise generating function (determines the overall shape of the lines, 
+choose between: 'simplex', 'waves', 'perlin', or 'spheres'), `palette` 
+determines the color palette (palettes include all those found in the
+`scico` package), and finally `animate` allows us to choose between a
+static image or animated image.
 
 ```{r, dpi = 200}
 make_art(seed      = 111,
@@ -206,6 +220,19 @@ make_art(seed      = 111,
          prob_dist = "uniform",
          generator = "simplex",
          palette   = "lajolla",
+         animate   = FALSE)
+```
+
+```{r, dpi = 200}
+make_art(seed      = 345,
+         n_lines   = 100,
+         n_steps   = 300,
+         step_size = 500,
+         step_slip = 80,
+         spread    = 1.5,
+         prob_dist = "normal",
+         generator = "spheres",
+         palette   = "bukavu",
          animate   = FALSE)
 ```
 
@@ -221,6 +248,19 @@ make_art(seed      = 911,
          prob_dist = "uniform",
          generator = "simplex",
          palette   = "lapaz",
+         animate   = FALSE)
+```
+
+```{r, dpi = 200}
+make_art(seed      = 3767,
+         n_lines   = 300,
+         n_steps   = 400,
+         step_size = 200,
+         step_slip = 20,
+         spread    = 1,
+         prob_dist = "uniform",
+         generator = "perlin",
+         palette   = "vik",
          animate   = FALSE)
 ```
 
@@ -240,9 +280,8 @@ make_art(seed      = 42,
          animate   = FALSE)
 ```
 
-## Examples of Animated Art
+## Example of Animated Art
 
-### Easy (Will Take A Minute)
 
 ```{r, dpi = 200}
 make_art(seed      = 594,
